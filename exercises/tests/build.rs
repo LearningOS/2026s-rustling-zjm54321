@@ -21,5 +21,5 @@ fn main() {
     // Cargo about that.
     let your_command = "Your command here, please checkout exercises/tests/build.rs";
     println!("cargo:{}", your_command);
-    println!(cargo:rustc-cfg=feature=\"pass\"");
+    println!("cargo:rustc-cfg=feature=\"pass\"");
 }
