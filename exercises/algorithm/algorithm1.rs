@@ -2,11 +2,10 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+
 
 #[derive(Debug)]
 struct Node<T> {
@@ -70,13 +69,63 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	where
+		T: PartialOrd,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
+		let mut result = LinkedList::new();
+		let mut ptr_a = list_a.start;
+		let mut ptr_b = list_b.start;
+
+		// 双指针遍历两个链表
+		while ptr_a.is_some() && ptr_b.is_some() {
+			unsafe {
+				let node_a = ptr_a.unwrap().as_ptr();
+				let node_b = ptr_b.unwrap().as_ptr();
+
+				if (*node_a).val <= (*node_b).val {
+					result.add_node(ptr_a.unwrap());
+					ptr_a = (*node_a).next;
+				} else {
+					result.add_node(ptr_b.unwrap());
+					ptr_b = (*node_b).next;
+				}
+			}
+		}
+
+		// 添加剩余的节点
+		while ptr_a.is_some() {
+			unsafe {
+				let node_a = ptr_a.unwrap().as_ptr();
+				result.add_node(ptr_a.unwrap());
+				ptr_a = (*node_a).next;
+			}
+		}
+
+		while ptr_b.is_some() {
+			unsafe {
+				let node_b = ptr_b.unwrap().as_ptr();
+				result.add_node(ptr_b.unwrap());
+				ptr_b = (*node_b).next;
+			}
+		}
+
+		result
+	}
+
+	fn add_node(&mut self, node_ptr: NonNull<Node<T>>) {
+		unsafe {
+			let node = node_ptr.as_ptr();
+			let mut new_node = Box::new(Node::new(std::ptr::read(&(*node).val)));
+			new_node.next = None;
+			let new_node_ptr = Some(NonNull::new_unchecked(Box::into_raw(new_node)));
+
+			match self.end {
+				None => self.start = new_node_ptr,
+				Some(end_ptr) => (*end_ptr.as_ptr()).next = new_node_ptr,
+			}
+			self.end = new_node_ptr;
+			self.length += 1;
+		}
 	}
 }
 
@@ -135,7 +184,7 @@ mod tests {
 		let vec_a = vec![1,3,5,7];
 		let vec_b = vec![2,4,6,8];
 		let target_vec = vec![1,2,3,4,5,6,7,8];
-		
+
 		for i in 0..vec_a.len(){
 			list_a.add(vec_a[i]);
 		}
